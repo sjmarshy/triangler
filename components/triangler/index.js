@@ -24,8 +24,26 @@ class Triangler extends React.Component {
     }
 
     componentDidMount() {
-        const { src } = this.props;
+        const canvas = document.createElement('canvas');
 
+        this.container.append(canvas);
+
+        this.setState(old =>
+            Object.assign({}, old, {
+                canvas: canvas,
+            })
+        );
+
+        this.loadImage(this.props.src);
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if (this.props.src !== nextProps.src) {
+            this.loadImage(nextProps.src);
+        }
+    }
+
+    loadImage(src) {
         const img = document.createElement('img');
         img.crossOrigin = 'Anonymous';
 
@@ -41,29 +59,16 @@ class Triangler extends React.Component {
     }
 
     initCanvas() {
-        const canvas = document.createElement('canvas');
-
-        const img = this.state.img;
+        const { canvas, img } = this.state;
 
         canvas.width = img.width;
         canvas.height = img.height;
 
-        const ctx = canvas.getContext('2d');
-
         this.image();
-
-        this.container.append(canvas);
-
-        this.setState(old =>
-            Object.assign({}, old, {
-                canvas: canvas,
-            })
-        );
     }
 
     image() {
-        const canvas = this.state.canvas;
-        const img = this.state.img;
+        const { canvas, img } = this.state;
 
         if (!canvas || !img) {
             return;
@@ -134,6 +139,8 @@ class Triangler extends React.Component {
     }
 
     render() {
+        console.log(this.props);
+
         if (this.props.active) {
             this.triangle();
         } else {
