@@ -50,7 +50,8 @@ class Triangler extends React.Component {
 
         const ctx = canvas.getContext('2d');
 
-        ctx.drawImage(img, 0, 0, img.width, img.height);
+        this.image();
+
         this.container.append(canvas);
 
         this.setState(old =>
@@ -60,6 +61,17 @@ class Triangler extends React.Component {
         );
     }
 
+    image() {
+        const canvas = this.state.canvas;
+        const img = this.state.img;
+
+        if (!canvas || !img) {
+            return;
+        }
+
+        canvas.getContext('2d').drawImage(img, 0, 0, img.width, img.height);
+    }
+
     triangle() {
         const {
             triWidth: triangleWidth,
@@ -67,8 +79,6 @@ class Triangler extends React.Component {
         } = this.props;
 
         const { img, canvas } = this.state;
-
-        console.log(img, canvas);
 
         if (!img || !canvas) {
             return;
@@ -124,7 +134,12 @@ class Triangler extends React.Component {
     }
 
     render() {
-        this.triangle();
+        if (this.props.active) {
+            this.triangle();
+        } else {
+            this.image();
+        }
+
         return <div ref={d => (this.container = d)} />;
     }
 }
