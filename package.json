@@ -1,0 +1,19 @@
+{
+    "name": "triangler",
+    "version": "1.0.0",
+    "main": "index.js",
+    "license": "MIT",
+    "scripts": {
+        "dev": "next",
+        "build": "next build",
+        "start": "next start"
+    },
+    "dependencies": {
+        "lodash": "^4.17.4",
+        "next": "^3.0.3",
+        "polished": "^1.4.0",
+        "react": "^15.6.1",
+        "react-dom": "^15.6.1",
+        "recompose": "^0.24.0"
+    }
+}
