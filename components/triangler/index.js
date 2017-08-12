@@ -17,6 +17,7 @@ class Triangler extends React.Component {
         this.state = {
             img: null,
             canvas: null,
+            imgData: null,
         };
 
         this.initCanvas = this.initCanvas.bind(this);
@@ -46,6 +47,7 @@ class Triangler extends React.Component {
 
     loadImage(src) {
         console.time('imageLoad');
+        console.log('go');
         const img = document.createElement('img');
         img.crossOrigin = 'Anonymous';
 
@@ -55,6 +57,7 @@ class Triangler extends React.Component {
 
         this.setState(old =>
             Object.assign({}, old, {
+                imgDataStale: true,
                 img: img,
             })
         );
@@ -64,10 +67,25 @@ class Triangler extends React.Component {
         console.timeEnd('imageLoad');
         const { canvas, img } = this.state;
 
-        canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+        const ctx = canvas.getContext('2d');
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         canvas.width = img.width;
         canvas.height = img.height;
+
+        ctx.drawImage(img, 0, 0, img.width, img.height);
+
+        if (img.width > 0 && img.height > 0) {
+            this.setState(old =>
+                Object.assign({}, old, {
+                    imgData: chunk(
+                        ctx.getImageData(0, 0, img.width, img.height).data,
+                        4
+                    ),
+                })
+            );
+        }
 
         this.image();
     }
@@ -79,7 +97,27 @@ class Triangler extends React.Component {
             return;
         }
 
-        canvas.getContext('2d').drawImage(img, 0, 0, img.width, img.height);
+        const ctx = canvas.getContext('2d');
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, img.width, img.height);
+    }
+
+    imgDataForSquare(x, y, w, h) {
+        const { imgData, canvas: { width: columns, height } } = this.state;
+        const data = [];
+
+        for (let x$ = x; x$ <= x + w; x$++) {
+            for (let y$ = y; y$ <= y + h; y$++) {
+                if (x$ < 0 || x$ > columns || y$ < 0 || y$ > height) {
+                    data.push([0, 0, 0, 0]);
+                } else {
+                    data.push(imgData[y$ * columns + x$]);
+                }
+            }
+        }
+
+        return data;
     }
 
     triangle() {
@@ -110,14 +148,14 @@ class Triangler extends React.Component {
                 y < canvas.height + triangleHeight;
                 y += triangleHeight
             ) {
-                const rawData = ctx.getImageData(
-                    x - triangleWidth / 4,
-                    y + triangleHeight / 4,
-                    triangleWidth / 2,
-                    triangleHeight / 2
-                ).data;
+                const rawData = this.imgDataForSquare(
+                    x - Math.floor(triangleWidth / 4),
+                    y + Math.floor(triangleHeight / 4),
+                    Math.floor(triangleWidth / 2),
+                    Math.floor(triangleHeight / 2)
+                );
 
-                const bareSqu = chunk(rawData, 4).filter(isRGBANotBlack);
+                const bareSqu = rawData.filter(isRGBANotBlack);
                 const squ = bareSqu.length > 0 ? bareSqu : [[0, 0, 0]];
 
                 const color = tweak(rgb2hex(averageRGBForArea(squ)));
