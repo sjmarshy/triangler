@@ -21,6 +21,7 @@ class Triangler extends React.Component {
         };
 
         this.initCanvas = this.initCanvas.bind(this);
+        this.triangle = this.triangle.bind(this);
     }
 
     componentDidMount() {
@@ -47,7 +48,6 @@ class Triangler extends React.Component {
 
     loadImage(src) {
         console.time('imageLoad');
-        console.log('go');
         const img = document.createElement('img');
         img.crossOrigin = 'Anonymous';
 
@@ -86,8 +86,6 @@ class Triangler extends React.Component {
                 })
             );
         }
-
-        this.image();
     }
 
     image() {
@@ -106,6 +104,10 @@ class Triangler extends React.Component {
     imgDataForSquare(x, y, w, h) {
         const { imgData, canvas: { width: columns, height } } = this.state;
         const data = [];
+
+        if (!imgData) {
+            return data;
+        }
 
         for (let x$ = x; x$ <= x + w; x$++) {
             for (let y$ = y; y$ <= y + h; y$++) {
@@ -183,10 +185,15 @@ class Triangler extends React.Component {
             flipped = !flipped;
         }
         console.timeEnd('triangling');
+        if (this.props.active && this.props.animate) {
+            requestAnimationFrame(this.triangle);
+        } else if (!this.props.active) {
+            this.image();
+        }
     }
 
     render() {
-        if (this.props.active) {
+        if (this.props.active && this.state.imgData) {
             this.triangle();
         } else {
             this.image();

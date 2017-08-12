@@ -19,7 +19,8 @@ export default class Index extends React.Component {
         super(props);
 
         this.state = {
-            triangler: false,
+            triangler: true,
+            animate: false,
             img: '/static/test.jpg',
             nextImg: '',
             triangle: {
@@ -29,6 +30,7 @@ export default class Index extends React.Component {
         };
 
         this.toggle = this.toggle.bind(this);
+        this.animate = this.animate.bind(this);
         this.setImage = this.setImage.bind(this);
         this.nextImg = this.nextImg.bind(this);
     }
@@ -57,7 +59,6 @@ export default class Index extends React.Component {
     }
 
     setImage(img) {
-        console.log(img);
         this.setState(old => Object.assign({}, old, { img, triangler: false }));
     }
 
@@ -65,6 +66,14 @@ export default class Index extends React.Component {
         this.setState(old =>
             Object.assign({}, old, {
                 triangler: !old.triangler,
+            })
+        );
+    }
+
+    animate() {
+        this.setState(old =>
+            Object.assign({}, old, {
+                animate: !old.animate,
             })
         );
     }
@@ -115,11 +124,16 @@ export default class Index extends React.Component {
                 <StyledButton onClick={this.toggle}>
                     Trianglify: {this.state.triangler.toString()}
                 </StyledButton>
+                <br />
+                <StyledButton onClick={this.animate}>
+                    Animation: {this.state.animate.toString()}
+                </StyledButton>
                 <Triangler
                     src={this.state.img}
                     triWidth={this.state.triangle.w}
                     triHeight={this.state.triangle.h}
                     active={this.state.triangler}
+                    animate={this.state.animate}
                 />
             </div>
         );
