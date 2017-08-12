@@ -4,7 +4,7 @@ import chunk from 'lodash/chunk';
 import isRGBANotBlack from '../../utils/isRGBANotBlack';
 import tweak from '../../utils/tweak';
 import rgb2hex from '../../utils/rgb2hex';
-import averageRGBForArea from '../../utils/averageRGBForArea';
+import averageRGBForArea, { test } from '../../utils/averageRGBForArea';
 import {
     filledTriangle,
     flippedFilledTriangle,
@@ -19,7 +19,6 @@ class Triangler extends React.Component {
             canvas: null,
         };
 
-        this.triangle = this.triangle.bind(this);
         this.initCanvas = this.initCanvas.bind(this);
     }
 
@@ -38,12 +37,15 @@ class Triangler extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
+        console.time('propSwap');
         if (this.props.src !== nextProps.src) {
             this.loadImage(nextProps.src);
         }
+        console.timeEnd('propSwap');
     }
 
     loadImage(src) {
+        console.time('imageLoad');
         const img = document.createElement('img');
         img.crossOrigin = 'Anonymous';
 
@@ -59,7 +61,10 @@ class Triangler extends React.Component {
     }
 
     initCanvas() {
+        console.timeEnd('imageLoad');
         const { canvas, img } = this.state;
+
+        canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
 
         canvas.width = img.width;
         canvas.height = img.height;
@@ -78,6 +83,8 @@ class Triangler extends React.Component {
     }
 
     triangle() {
+        console.time('triangling');
+
         const {
             triWidth: triangleWidth,
             triHeight: triangleHeight,
@@ -104,16 +111,17 @@ class Triangler extends React.Component {
                 y += triangleHeight
             ) {
                 const rawData = ctx.getImageData(
-                    x - triangleWidth / 2,
-                    y,
-                    triangleWidth,
-                    triangleHeight
+                    x - triangleWidth / 4,
+                    y + triangleHeight / 4,
+                    triangleWidth / 2,
+                    triangleHeight / 2
                 ).data;
 
                 const bareSqu = chunk(rawData, 4).filter(isRGBANotBlack);
                 const squ = bareSqu.length > 0 ? bareSqu : [[0, 0, 0]];
 
                 const color = tweak(rgb2hex(averageRGBForArea(squ)));
+
                 if (flipped) {
                     flippedFilledTriangle(
                         x - triangleWidth / 2,
@@ -136,17 +144,15 @@ class Triangler extends React.Component {
             }
             flipped = !flipped;
         }
+        console.timeEnd('triangling');
     }
 
     render() {
-        console.log(this.props);
-
         if (this.props.active) {
             this.triangle();
         } else {
             this.image();
         }
-
         return <div ref={d => (this.container = d)} />;
     }
 }

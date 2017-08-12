@@ -9,6 +9,7 @@
         "start": "next start"
     },
     "dependencies": {
+        "ava": "^0.21.0",
         "lodash": "^4.17.4",
         "next": "^3.0.3",
         "polished": "^1.4.0",
