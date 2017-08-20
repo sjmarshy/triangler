@@ -52,12 +52,16 @@ class Triangler extends React.Component {
         img.crossOrigin = 'Anonymous';
 
         img.addEventListener('load', this.initCanvas);
+        img.addEventListener('error', () => {
+            this.setState({
+                error: true,
+            });
+        });
 
         img.src = src;
 
         this.setState(old =>
             Object.assign({}, old, {
-                imgDataStale: true,
                 img: img,
             })
         );
@@ -140,46 +144,52 @@ class Triangler extends React.Component {
 
         let flipped = true;
 
-        for (
-            let x = 0;
-            x < canvas.width + triangleWidth;
-            x += triangleWidth / 2
-        ) {
-            for (
-                let y = 0;
-                y < canvas.height + triangleHeight;
-                y += triangleHeight
-            ) {
+        const width = canvas.width + triangleWidth;
+        const height = canvas.height + triangleHeight;
+
+        const sampleOffsetX = Math.floor(triangleWidth / 4);
+        const sampleOffsetY = Math.floor(triangleHeight / 4);
+        const sampleWidth = Math.floor(triangleWidth / 2);
+        const sampleHeight = Math.floor(triangleHeight / 2);
+
+        for (let x = 0; x < width; x += triangleWidth / 2) {
+            for (let y = 0; y < height; y += triangleHeight) {
                 const rawData = this.imgDataForSquare(
-                    x - Math.floor(triangleWidth / 4),
-                    y + Math.floor(triangleHeight / 4),
-                    Math.floor(triangleWidth / 2),
-                    Math.floor(triangleHeight / 2)
+                    x - sampleOffsetX,
+                    y + sampleOffsetY,
+                    sampleWidth,
+                    sampleHeight
                 );
 
-                const bareSqu = rawData.filter(isRGBANotBlack);
-                const squ = bareSqu.length > 0 ? bareSqu : [[0, 0, 0]];
+                const triChance =
+                    x + y === 0 ? 1 : 1 - (x + y) / (width + height) * 1.4;
 
-                const color = tweak(rgb2hex(averageRGBForArea(squ)));
+                if (Math.random() < triChance) {
+                    const bareSqu = rawData.filter(isRGBANotBlack);
+                    const squ = bareSqu.length > 0 ? bareSqu : [[0, 0, 0]];
 
-                if (flipped) {
-                    flippedFilledTriangle(
-                        x - triangleWidth / 2,
-                        y,
-                        triangleWidth,
-                        triangleHeight,
-                        color,
-                        ctx
-                    );
-                } else {
-                    filledTriangle(
-                        x - triangleWidth / 2,
-                        y,
-                        triangleWidth,
-                        triangleHeight,
-                        color,
-                        ctx
-                    );
+                    const color = tweak(rgb2hex(averageRGBForArea(squ)));
+                    ctx.globalAlpha = Math.random();
+
+                    if (flipped) {
+                        flippedFilledTriangle(
+                            x - triangleWidth / 2,
+                            y,
+                            triangleWidth,
+                            triangleHeight,
+                            color,
+                            ctx
+                        );
+                    } else {
+                        filledTriangle(
+                            x - triangleWidth / 2,
+                            y,
+                            triangleWidth,
+                            triangleHeight,
+                            color,
+                            ctx
+                        );
+                    }
                 }
             }
             flipped = !flipped;
@@ -193,6 +203,9 @@ class Triangler extends React.Component {
     }
 
     render() {
+        if (this.state.error) {
+            return <p>unable to render image</p>;
+        }
         if (this.props.active && this.state.imgData) {
             this.triangle();
         } else {
